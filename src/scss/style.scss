@@ -1,0 +1,60 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body, h2, input {
+  padding: 0;
+  margin: 0;
+}
+
+#map {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+}
+
+.map__balloon {
+  width: 400px;
+  height: 250px;
+  padding: 20px 30px;
+  /* padding: 20px 30px 10px 15px; */
+  background-color: #fff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  visibility: visible;
+}
+
+.map__balloon--hidden {
+  visibility: hidden;
+}
+
+.balloon__wrap {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.balloon__title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.balloon__form {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.form__input {
+  margin-bottom: 15px;
+  font-size: 14px;
+  border: 1px solid rgb(118, 118, 113);
+  border-radius: 3px;
+}
+
+.balloon__btn {
+  align-items: flex-start;
+}
