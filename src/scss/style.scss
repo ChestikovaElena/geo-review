@@ -4,7 +4,7 @@
   position: fixed;
 }
 
-.balloon {
+.form {
   font-size: 14px;
   width: 400px;
   padding: 20px 30px;
@@ -48,6 +48,11 @@
   margin-bottom: 20px;
 }
 
+.review__list {
+  max-height: 200px;
+  overflow: auto;
+}
+
 .review__item {
   margin-bottom: 10px;
     &--name {
@@ -60,23 +65,17 @@
     }
 }
 
-.balloon__review {
+.form__review {
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.balloon__title {
+.form__title {
   font-size: 20px;
   font-weight: bold;
 }
-
-// .balloon__form {
-//   display: flex;
-//   flex-direction: column;
-//   justify-content: space-between;
-// }
 
 .input {
   margin-bottom: 15px;
@@ -90,7 +89,7 @@
     }
 }
 
-.balloon__btn-add {
+.form__btn-add {
   background-color: rgb(194, 194, 194);
   padding: 5px 10px;
   border-radius: 5px;
@@ -98,7 +97,7 @@
   align-self: flex-start;
 }
 
-.ballon__btn-close {
+.form__btn-close {
   text-decoration: none;
   position: absolute;
   top: 5px;
@@ -128,18 +127,5 @@
 
   &:after {
     transform: rotate(-45deg);
-  }
-}
-
-.review {
-  font-size: 16px;
-
-  &__row {
-    display:inline-flex;
-  }
-
-  &__name {
-    margin-right: 5px;
-    font-weight: bold;
   }
 }

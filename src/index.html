@@ -3,30 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <title>Яндекс.Карты</title>
-  <!-- <link rel="stylesheet" href="css/style.css"> -->
 </head>
 <body>
   <div id="map" class="map"></div>
 
-  <div id="form" class="balloon balloon--hidden">
-    <div class="balloon__wrap">
-      <div class="balloon__container">
+  <div id="form" class="form form--hidden">
+    <div class="form__wrap">
+      <div class="form__container">
         <span id="empty_message">Отзывов пока нет...</span>
         <ul class="review__list" id="review_list"></ul>
       </div>
-      <div class="balloon__review">
-        <h2 class="balloon__title">Отзыв:</h2>
+      <div class="form__review">
+        <h2 class="form__title">Отзыв:</h2>
         <input type="text" id="name" placeholder="Укажите ваше имя" class="input">
         <input type="text" id="place" placeholder="Укажите ваше место" class="input">
         <textarea id="review" placeholder="Оставьте отзыв" class="input input__textarea"></textarea>
-        <button id="add" class="balloon__btn-add">Добавить</button>
-        <div href="#" id="close" class="ballon__btn-close"></div>
+        <button id="add" class="form__btn-add">Добавить</button>
+        <div href="#" id="close" class="form__btn-close"></div>
       </div>
     </div>
   </div>
 
   <script src="https://api-maps.yandex.ru/2.1/?apikey=cdb34a58-e7f0-472d-91ec-dc3dcbee26bc&lang=ru_RU" type="text/javascript">
   </script>
-  <!-- <script src="index.js" type="text/javascript"></script> -->
 </body>
 </html>

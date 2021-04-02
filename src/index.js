@@ -186,7 +186,7 @@ function init() {
   const openBalloon = (placemark, addr) => {
     balloon.style.top = event.clientY + "px";
     balloon.style.left = event.clientX + "px";
-    balloon.classList.remove('balloon--hidden');
+    balloon.classList.remove('form--hidden');
     
     
     if (isNewPlacemark) {
@@ -252,7 +252,7 @@ const cleanForm = () => {
 }
 
 const closeBalloon = () => {
-  balloon.classList.add('balloon--hidden');
+  balloon.classList.add('form--hidden');
   listElement.innerHTML = '';
   isNewPlacemark = false;
   emptyMessageElement.style.display = 'block';
