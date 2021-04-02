@@ -1,36 +1,66 @@
-* {
-  box-sizing: border-box;
-}
-
-html, body, h2, input {
-  padding: 0;
-  margin: 0;
-}
-
 #map {
   width: 100vw;
   height: 100vh;
   position: fixed;
 }
 
-.map__balloon {
+.balloon {
+  font-size: 14px;
   width: 400px;
-  height: 250px;
   padding: 20px 30px;
-  /* padding: 20px 30px 10px 15px; */
+  border-radius: 15px;
   background-color: #fff;
+  z-index: 999;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   visibility: visible;
+
+    &__wrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    &--hidden {
+      visibility: hidden;
+    }
+
+    &__title {
+      font-weight: 300;
+      margin-bottom: 20px;
+      width: 100%;
+    }
 }
 
-.map__balloon--hidden {
-  visibility: hidden;
+.balloon__header {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 20px;
+  cursor: pointer;
 }
 
-.balloon__wrap {
+.balloon__body {
+  margin-bottom: 10px;
+}
+
+.balloon__container {
+  margin-bottom: 20px;
+}
+
+.review__item {
+  margin-bottom: 10px;
+    &--name {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+}
+
+.balloon__review {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -42,19 +72,74 @@ html, body, h2, input {
   font-weight: bold;
 }
 
-.balloon__form {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
+// .balloon__form {
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: space-between;
+// }
 
-.form__input {
+.input {
   margin-bottom: 15px;
   font-size: 14px;
   border: 1px solid rgb(118, 118, 113);
   border-radius: 3px;
+
+    &__textarea {
+      height: 80px;
+      resize: none;
+    }
 }
 
-.balloon__btn {
-  align-items: flex-start;
+.balloon__btn-add {
+  background-color: rgb(194, 194, 194);
+  padding: 5px 10px;
+  border-radius: 5px;
+  border: 1px solid #000;
+  align-self: flex-start;
+}
+
+.ballon__btn-close {
+  text-decoration: none;
+  position: absolute;
+  top: 5px;
+  right: 7px;
+
+  display: block;
+  height: 20px;
+  width: 20px;
+  opacity: 0.3;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:before, &:after {
+    position: absolute;
+    left: 10px;
+    content: "";
+    height: 20px;
+    width: 2px;
+    background-color: rgb(118, 118, 113);
+  }
+
+  &:before {
+    transform: rotate(45deg);
+  }
+
+  &:after {
+    transform: rotate(-45deg);
+  }
+}
+
+.review {
+  font-size: 16px;
+
+  &__row {
+    display:inline-flex;
+  }
+
+  &__name {
+    margin-right: 5px;
+    font-weight: bold;
+  }
 }
