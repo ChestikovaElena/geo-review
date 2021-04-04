@@ -229,9 +229,9 @@ console.log(e);
 
     balloon.style.top = event.clientY + "px";
     balloon.style.left = event.clientX + "px";
-    if (event.clientY <= position.height/2) {balloon.style.top = `${position.height/2}px`};
-    if (event.clientY >= (browserHeight - (position.height/2))) {balloon.style.top = `${browserHeight - (position.height/2)}px`};
-    if (event.clientX <= position.width/2) {balloon.style.left = `${position.width/2}px`};
+    if (event.clientY <= (position.height/2)) {balloon.style.top = `${(position.height/2) + 50}px`};
+    if (event.clientY >= (browserHeight - (position.height/2))) {balloon.style.top = `${browserHeight - (position.height/2) - 50}px`};
+    if (event.clientX <= (position.width/2)) {balloon.style.left = `${(position.width/2)}px`};
     if (event.clientX >= (browserWidth - (position.width/2))) {balloon.style.left = `${browserWidth - (position.width/2)}px`};
     
     balloon.classList.remove('form--hidden');
