@@ -25,7 +25,7 @@ function init() {
       center: [58.01, 56.23],
       zoom: 15,
       behaviors: ['drag'],
-      controls: ['rulerControl', 'searchControl']
+      controls: ['rulerControl', 'searchControl', 'zoomControl']
     }, {
       yandexMapDisablePoiInteractivity: true,
     });
