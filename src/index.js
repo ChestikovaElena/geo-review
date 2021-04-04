@@ -9,51 +9,59 @@ let
   isNewPlacemark = false;
 
 const balloon = document.querySelector('#form'),
-      addBtn = balloon.querySelector('#add'),
       closeBtn = balloon.querySelector('#close'),
-      nameElement = balloon.querySelector('#name'),
-      placeElement = balloon.querySelector('#place'),
-      reviewElement = balloon.querySelector('#review'),
-      emptyMessageElement = document.querySelector('#empty_message'),
-      listElement = document.querySelector('#review_list');
+      nameElement = balloon.querySelector('[data-role=review-name]'),
+      placeElement = balloon.querySelector('[data-role=review-place]'),
+      reviewElement = balloon.querySelector('[data-role=review-comment]'),
+      listElement = document.querySelector('#review_list'),
+      containerElement = document.querySelector('#form__container');
 
 const storage = localStorage;
-let counter = storage.length;
+// storage.clear();
 
 function init() {
-  let myPlacemark = {},
-      coords = [],
-      address = '',
-      myMap = new ymaps.Map('map', {
-        center: [58.01, 56.23],
-        zoom: 15,
-        behaviors: ['drag']
-      });
-  
+  let address = '',
+    myMap = new ymaps.Map('map', {
+      center: [58.01, 56.23],
+      zoom: 15,
+      behaviors: ['drag'],
+      controls: ['rulerControl', 'searchControl']
+    }, {
+      yandexMapDisablePoiInteractivity: true,
+    });
+      
   myMap.cursors.push('arrow');
 
   const clusterer = initClusterer();
 
-  loadReviewsFromStorage();
-
-  if (placemarks) renderPlacemarks(myMap, clusterer);
-  
+  if (storage.length > 0) {
+    renderPlacemarks(myMap, clusterer);
+  };
+    
   myMap.events.add('click', e => {
-    coords = e.get('coords');
-    myPlacemark.latitude = coords[0];
-    myPlacemark.longitude = coords[1];
-    isNewPlacemark = true;
+    const coords = e.get('coords');
+    const reviewForm = document.querySelector('[data-role=review-form]');
+    reviewForm.dataset.coords = JSON.stringify(coords);
 
-    openBalloon(myPlacemark);
+    isNewPlacemark = true;
+    console.log(e);
+    openBalloon(coords);
     getAddress(coords);
   });
 
   document.body.addEventListener('click', e => {
-    e.preventDefault();
-
-    if (e.target.tagName === 'A') {
+    if (e.target.dataset.role === 'header') {
+      e.preventDefault();
+console.log(e);
       isNewPlacemark = false;
-      openBalloon({}, e.target.textContent);
+      const coords = getCoordsByAddress(e.target.textContent);
+      openBalloon(coords);
+    }
+
+    if (e.target.dataset.role === 'review-add') {
+      e. preventDefault();
+
+      addPlacemark();
     }
   })
 
@@ -61,41 +69,72 @@ function init() {
     ymaps.geocode(coords).then(function (res) {
     let firstGeoObject = res.geoObjects.get(0);
 
-    myPlacemark.address = firstGeoObject.properties.get('text');
+    address = firstGeoObject.properties.get('text');
     });
   }
 
   function getCoordsByAddress(address) {
+    const placemarks = loadReviewsFromStorage();
+    let coords = [];
+
     for (let review of placemarks) {
         if (review.address === address) {
-            coords = [review.latitude, review.longitude];
+            coords = review.coords;
             break;
         }
     }
-    console.log(coords);
+    return coords;
 }
 
-  addBtn.addEventListener('click', e => {
-    e.preventDefault();
+  function getAddressFromStorage(coords) {
+    const placemarks = loadReviewsFromStorage();
+    let addr = [];
+
+    for (let review of placemarks) {
+        if (JSON.stringify(review.coords) === JSON.stringify(coords)) {
+            addr = review.address;
+            break;
+        }
+    }
+    return addr;
+  }
+
+  function getCurrentDate() {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+
+    today = mm + '.' + dd + '.' + yyyy;
+    return today;
+  }
+
+  function addPlacemark() {
+    let myPlacemark = {};
+    let coords = [];
+
+    const reviewForm = document.querySelector('[data-role=review-form]');
+    coords = JSON.parse(reviewForm.dataset.coords);
+    
+    myPlacemark.coords = coords;
+    
+    const curDate = getCurrentDate();
+    myPlacemark.curDate = curDate;
+    
+    if (address === '') {address = getAddressFromStorage(coords)};
+    myPlacemark.address = address;
     
     const name = nameElement.value.trim();
     const place = placeElement.value.trim();
     const comment = reviewElement.value.trim();
-    
-    if (name && place && review) {
+
+    if (name && place && comment) {
       myPlacemark.reviewer = name;
       myPlacemark.place = place;
       myPlacemark.comment = comment;
 
-      if (!isNewPlacemark) {
-        myPlacemark.latitude = coords[0];
-        myPlacemark.longitude = coords[1];
-        if (!myPlacemark.address) myPlacemark.address = address;
-      };
-      console.log(myPlacemark);
       
-      if (!myPlacemark.longitude) {console.log (myPlacemark)};
-      saveReviewsToStorage(myPlacemark);
+      if (coords && curDate && address) saveReviewsToStorage(myPlacemark);
       
       const geoObject = createGeoObject(myPlacemark);
       placemarks.push(myPlacemark);
@@ -106,10 +145,9 @@ function init() {
 
       cleanForm();
       closeBalloon();
-      myPlacemark = {};
       
     } else alert('Заполните все поля!');
-  })
+  }
 
   closeBtn.addEventListener('click', e => {
     cleanForm();
@@ -117,8 +155,8 @@ function init() {
   })
   
   function createGeoObject(placemark) {
-    let {latitude, longitude, address, reviewer, place, comment} = placemark;
-    const geoObject = new ymaps.Placemark([latitude, longitude], {
+    let {coords, date, address, reviewer, place, comment} = placemark;
+    const geoObject = new ymaps.Placemark(coords, {
       hintContent: `<b>${reviewer}</b> ${place}`,
       balloonContentHeader: `${address}`,
       balloonContentBody: `<b>${reviewer}</b> [${place}]`,
@@ -138,17 +176,15 @@ function init() {
   function addEvent(geoObject, placemark) {
     geoObject.events.add('click', (e) => {
       e.preventDefault();
-      coords.push(placemark.latitude);
-      coords.push(placemark.longitude);
-      
+      console.log(e);
       isNewPlacemark = false;
-      openBalloon(placemark);
+      openBalloon(placemark.coords);
     })
   }
 
   function initClusterer() {
     let customItemContentLayout = ymaps.templateLayoutFactory.createClass(
-      '<a class=balloon__header id=header>{{ properties.balloonContentHeader|raw }}</a>'+
+      '<a class=balloon__header data-role="header" id=header>{{ properties.balloonContentHeader|raw }}</a>'+
       '<div class=balloon__body>{{ properties.balloonContentBody|raw }}</div>' +
       '<div class=balloon__footer>{{ properties.balloonContentFooter|raw }}</div>'
     );
@@ -171,41 +207,61 @@ function init() {
   }
   
   function renderPlacemarks(map, clusterer) {
-    
+    const placemarks = loadReviewsFromStorage();
     console.log(placemarks);
     for (let mark of placemarks) {
       
       const geoObject = createGeoObject(mark);
       geoObjects.push(geoObject);
     }
-    console.log(geoObjects);
+    
     clusterer.add(geoObjects);
     map.geoObjects.add(clusterer);
   }
 
-  const openBalloon = (placemark, addr) => {
+  const openBalloon = (coords) => {
+    const reviewForm = document.querySelector('[data-role=review-form]');
+    reviewForm.dataset.coords = JSON.stringify(coords);
+    const position = balloon.getBoundingClientRect();
+    
+    const browserHeight = document.body.clientHeight;
+    const browserWidth = document.body.clientWidth;
+
     balloon.style.top = event.clientY + "px";
     balloon.style.left = event.clientX + "px";
+    if (event.clientY <= position.height/2) {balloon.style.top = `${position.height/2}px`};
+    if (event.clientY >= (browserHeight - (position.height/2))) {balloon.style.top = `${browserHeight - (position.height/2)}px`};
+    if (event.clientX <= position.width/2) {balloon.style.left = `${position.width/2}px`};
+    if (event.clientX >= (browserWidth - (position.width/2))) {balloon.style.left = `${browserWidth - (position.width/2)}px`};
+    
     balloon.classList.remove('form--hidden');
     
-    
     if (isNewPlacemark) {
-      createGeoObject(placemark);
+      containerElement.style.display = 'none';
     } else {
       const clusterCloseBtn = document.querySelector(".ymaps-2-1-78-balloon__close");
+      containerElement.style.display = 'block';
       if (clusterCloseBtn) {
         clusterCloseBtn.dispatchEvent(new MouseEvent('click'));
       };
 
-      emptyMessageElement.style.display = 'none';
-      address = placemark.address||addr;
-      showAllReviews(address);
+      showAllReviews(coords);
     }
   };
+
+  const closeBalloon = () => {
+    balloon.classList.add('form--hidden');
+    listElement.innerHTML = '';
+    isNewPlacemark = false;
+    address = '';
+  
+    const reviewForm = document.querySelector('[data-role=review-form]');
+    reviewForm.dataset.coords = JSON.stringify([]);
+  }
 }
 
-function showAllReviews(addr) {
-  const placemarksList = getAllReview(addr);
+function showAllReviews(coords) {
+  const placemarksList = getAllReview(coords);
   const fragment = document.createDocumentFragment();
 
   placemarksList.forEach(elem => fragment.appendChild(renderReview(elem)));
@@ -213,10 +269,11 @@ function showAllReviews(addr) {
   listElement.appendChild(fragment);
 }
 
-function getAllReview(addr) {
+function getAllReview(coords) {
+  const placemarks = loadReviewsFromStorage ();
   
   const filteringArray = placemarks.filter(
-    elem => (elem.address === addr));
+    elem => (JSON.stringify(elem.coords) === JSON.stringify(coords)));
   
   return filteringArray;
 }
@@ -226,20 +283,30 @@ function renderReview(placemark) {
   const liElement = document.createElement('li');
   liElement.classList.add('review__item');
 
+  const row = document.createElement('div');
+  row.classList.add('review__row');
+
   const spanName = document.createElement('span');
   spanName.innerText = placemark.reviewer;
-  spanName.classList.add('review__item--name');
+  spanName.classList.add('review__row--name');
 
   const spanPlace = document.createElement('span');
-  spanPlace.innerText = `[${placemark.place}]`;
-  spanPlace.classList.add('review__item-place');
+  spanPlace.innerText = placemark.place;
+  spanPlace.classList.add('review__row--place');
+  
+  const spanDate = document.createElement('span');
+  spanDate.innerText = placemark.curDate;
+  spanDate.classList.add('review__row--date');
 
   const comment = document.createElement('div');
   comment.textContent = placemark.comment;
-  comment.classList.add('review__item-comment');
+  comment.classList.add('review__row--comment');
 
-  liElement.appendChild(spanName);
-  liElement.appendChild(spanPlace);
+  row.appendChild(spanName);
+  row.appendChild(spanPlace);
+  row.appendChild(spanDate);
+
+  liElement.appendChild(row);
   liElement.appendChild(comment);
 
   return liElement;
@@ -251,23 +318,13 @@ const cleanForm = () => {
   reviewElement.value = "";
 }
 
-const closeBalloon = () => {
-  balloon.classList.add('form--hidden');
-  listElement.innerHTML = '';
-  isNewPlacemark = false;
-  emptyMessageElement.style.display = 'block';
-}
 
 function saveReviewsToStorage (review) {
-  storage.setItem(counter, JSON.stringify(review));
-  counter++;
+  let placemarks = loadReviewsFromStorage();
+  placemarks.push(review);
+  storage.setItem('data', JSON.stringify(placemarks));
 }
 
 function loadReviewsFromStorage () {
-  
-  for (let i = 0; i < storage.length; i++) {
-    const placemark = JSON.parse(localStorage.getItem(i));
-    placemarks.push(placemark);
-  }
-  console.log(placemarks);
+  return placemarks = JSON.parse(storage.getItem('data') || '[]');
 }
