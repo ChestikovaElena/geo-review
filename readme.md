@@ -1,1 +1,1 @@
-https://chestikovaelena.github.io/geo-review/
+https://chestikovaelena.github.io/geo-review/dist
