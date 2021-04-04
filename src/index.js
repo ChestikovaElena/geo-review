@@ -1,3 +1,4 @@
+
 import './scss/layout.scss';
 import './scss/style.scss';
 
@@ -6,7 +7,8 @@ ymaps.ready(init);
 let 
   placemarks = [],
   geoObjects = [],
-  isNewPlacemark = false;
+  isNewPlacemark = false,
+  isOpenFromPlacemark = false;
 
 const balloon = document.querySelector('#form'),
       closeBtn = balloon.querySelector('#close'),
@@ -16,7 +18,11 @@ const balloon = document.querySelector('#form'),
       listElement = document.querySelector('#review_list'),
       containerElement = document.querySelector('#form__container');
 
-const storage = localStorage;
+const storage = localStorage,
+      HEIGHTTRIANGLE = 20,
+      WIDTHTRIANGLE = 20,
+      LEFTSHIFTTRIANGLE = 50,
+      TOPSHIFTBALLON = 95; //возникает из-за разницы координат при открытии из метки или кластера
 // storage.clear();
 
 function init() {
@@ -52,10 +58,12 @@ function init() {
   document.body.addEventListener('click', e => {
     if (e.target.dataset.role === 'header') {
       e.preventDefault();
-console.log(e);
+      const shiftX = e.clientX - e.target.getBoundingClientRect().x;
+      
       isNewPlacemark = false;
       const coords = getCoordsByAddress(e.target.textContent);
-      openBalloon(coords);
+      
+      openBalloon(coords, shiftX);
     }
 
     if (e.target.dataset.role === 'review-add') {
@@ -176,8 +184,10 @@ console.log(e);
   function addEvent(geoObject, placemark) {
     geoObject.events.add('click', (e) => {
       e.preventDefault();
-      console.log(e);
+      
       isNewPlacemark = false;
+      isOpenFromPlacemark = true;
+      
       openBalloon(placemark.coords);
     })
   }
@@ -208,7 +218,9 @@ console.log(e);
   
   function renderPlacemarks(map, clusterer) {
     const placemarks = loadReviewsFromStorage();
-    console.log(placemarks);
+    const titleElement = document.querySelector('[data-role=review-address]');
+    titleElement.textContent = placemarks[0].address;
+
     for (let mark of placemarks) {
       
       const geoObject = createGeoObject(mark);
@@ -219,20 +231,9 @@ console.log(e);
     map.geoObjects.add(clusterer);
   }
 
-  const openBalloon = (coords) => {
+  const openBalloon = (coords, shiftX = 0) => {
     const reviewForm = document.querySelector('[data-role=review-form]');
     reviewForm.dataset.coords = JSON.stringify(coords);
-    const position = balloon.getBoundingClientRect();
-    
-    const browserHeight = document.body.clientHeight;
-    const browserWidth = document.body.clientWidth;
-
-    balloon.style.top = event.clientY + "px";
-    balloon.style.left = event.clientX + "px";
-    if (event.clientY <= (position.height/2)) {balloon.style.top = `${(position.height/2) + 50}px`};
-    if (event.clientY >= (browserHeight - (position.height/2))) {balloon.style.top = `${browserHeight - (position.height/2) - 50}px`};
-    if (event.clientX <= (position.width/2)) {balloon.style.left = `${(position.width/2)}px`};
-    if (event.clientX >= (browserWidth - (position.width/2))) {balloon.style.left = `${browserWidth - (position.width/2)}px`};
     
     balloon.classList.remove('form--hidden');
     
@@ -247,12 +248,41 @@ console.log(e);
 
       showAllReviews(coords);
     }
+    console.log(containerElement.offsetHeight);
+
+    if (isOpenFromPlacemark) {
+      balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
+                           + containerElement.offsetHeight - TOPSHIFTBALLON) + "px";
+    } else {
+      balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2) + containerElement.offsetHeight) + "px";
+    }
+    balloon.style.left = (event.clientX + (balloon.offsetWidth / 2) - LEFTSHIFTTRIANGLE - WIDTHTRIANGLE) -shiftX + "px";
+    
+    const position = balloon.getBoundingClientRect();
+    const windowWidth = document.documentElement.clientWidth;
+    const windowHeight = document.documentElement.clientHeight;
+    const isBalloonIsBehindMap = ((position.x < 0) || (position.y < 0)) || (position.right > windowWidth);
+
+    // if (isBalloonIsBehindMap) {
+    //   addScroll(position.x, position.y, windowWidth, windowHeight);
+    //   balloon.style.top += -position.x;
+    // };
   };
+
+  // function addScroll(x, y, windowWidth, windowHeight) {
+  //   const mapElement = document.querySelector("#map");
+
+  //   if ( x < 0 ) {
+  //     mapElement.style.width = `${windowWidth - x}px`;
+  //     mapElement.style.overflowX = "scroll";
+  //   }
+  // }
 
   const closeBalloon = () => {
     balloon.classList.add('form--hidden');
     listElement.innerHTML = '';
     isNewPlacemark = false;
+    isOpenFromPlacemark = false;
     address = '';
   
     const reviewForm = document.querySelector('[data-role=review-form]');
@@ -317,7 +347,6 @@ const cleanForm = () => {
   placeElement.value = "";
   reviewElement.value = "";
 }
-
 
 function saveReviewsToStorage (review) {
   let placemarks = loadReviewsFromStorage();

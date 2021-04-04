@@ -48,10 +48,14 @@
     }
 }
 
+.container__title{
+  font-weight: 700;
+}
+
 .review__list {
   max-height: 100px;
   overflow: auto;
-  margin-top: 10px;
+  margin-top: 15px;
 
   &::-webkit-scrollbar {
     width: 3px;
