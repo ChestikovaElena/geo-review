@@ -8,6 +8,7 @@ let
   placemarks = [],
   geoObjects = [],
   centerOfMap = [],
+  isBalloonIsBehindMap,
   isNewPlacemark = false,
   isOpenFromPlacemark = false;
 
@@ -36,7 +37,7 @@ function init() {
     });
       
   myMap.cursors.push('arrow');
-
+  centerOfMap = [58.01, 56.23];
   const clusterer = initClusterer();
 
   if (storage.length > 0) {
@@ -267,7 +268,7 @@ function init() {
     const position = balloon.getBoundingClientRect();
     const windowWidth = document.documentElement.clientWidth;
     const windowHeight = document.documentElement.clientHeight;
-    const isBalloonIsBehindMap = ((position.x < 0) || (position.y < 0)) || (position.right > windowWidth);
+    isBalloonIsBehindMap = ((position.x < 0) || (position.y < 0)) || (position.right > windowWidth);
 
     if (isBalloonIsBehindMap) {
       if (position.x < 0) {
@@ -302,7 +303,7 @@ function init() {
     const reviewForm = document.querySelector('[data-role=review-form]');
     reviewForm.dataset.coords = JSON.stringify([]);
 
-    myMap.setGlobalPixelCenter(centerOfMap);
+    if (isBalloonIsBehindMap) {myMap.setGlobalPixelCenter(centerOfMap)};
   }
 }
 
