@@ -48,11 +48,18 @@ function init() {
     const coords = e.get('coords');
     const reviewForm = document.querySelector('[data-role=review-form]');
     reviewForm.dataset.coords = JSON.stringify(coords);
-
-    isNewPlacemark = true;
     
-    openBalloon(coords);
-    getAddress(coords);
+    isNewPlacemark = true;
+
+    const myGeocoder = ymaps.geocode(coords);
+    myGeocoder.then(
+      function (res) {
+      let firstGeoObject = res.geoObjects.get(0);
+        
+      address = firstGeoObject.properties.get('text');
+      })
+      .then(openBalloon.(coords, 0));
+
   });
 
   document.body.addEventListener('click', e => {
@@ -75,13 +82,13 @@ function init() {
     }
   })
 
-  function getAddress(coords) {
-    ymaps.geocode(coords).then(function (res) {
-    let firstGeoObject = res.geoObjects.get(0);
+  // function getAddress(coords) {
+  //   ymaps.geocode(coords).then(function (res) {
+  //   let firstGeoObject = res.geoObjects.get(0);
 
-    address = firstGeoObject.properties.get('text');
-    });
-  }
+  //   address = firstGeoObject.properties.get('text');
+  //   });
+  // }
 
   function getCoordsByAddress(address) {
     const placemarks = loadReviewsFromStorage();
@@ -248,20 +255,24 @@ function init() {
 
       showAllReviews(coords);
     }
-
+    
     const HEIGHTTRIANGLE = 20,
           WIDTHTRIANGLE = 20,
           TOPSHIFTHEADER = 15,
           LEFTSHIFTTRIANGLE = 50,
           TOPSHIFTBALLON = 85; //возникает из-за разницы координат при открытии из метки или кластера
+    const x = event.clientX;
+    const y = event.clientY;
+
     if (isOpenFromPlacemark) {
-      balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
+      balloon.style.top = (y - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
                            + containerElement.offsetHeight - TOPSHIFTBALLON) + "px";
     } else {
-      balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
+      console.log(event.clientX);
+      balloon.style.top = (y - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
                          + containerElement.offsetHeight - TOPSHIFTHEADER) + "px";
     }
-    balloon.style.left = (event.clientX + (balloon.offsetWidth / 2) - LEFTSHIFTTRIANGLE - WIDTHTRIANGLE) -shiftX + "px";
+    balloon.style.left = (x + (balloon.offsetWidth / 2) - LEFTSHIFTTRIANGLE - WIDTHTRIANGLE) -shiftX + "px";
     
     const position = balloon.getBoundingClientRect();
     const windowWidth = document.documentElement.clientWidth;
