@@ -3,10 +3,11 @@ import './scss/layout.scss';
 import './scss/style.scss';
 
 ymaps.ready(init);
-
+let myMap;
 let 
   placemarks = [],
   geoObjects = [],
+  centerOfMap = [],
   isNewPlacemark = false,
   isOpenFromPlacemark = false;
 
@@ -16,17 +17,15 @@ const balloon = document.querySelector('#form'),
       placeElement = balloon.querySelector('[data-role=review-place]'),
       reviewElement = balloon.querySelector('[data-role=review-comment]'),
       listElement = document.querySelector('#review_list'),
-      containerElement = document.querySelector('#form__container');
+      containerElement = document.querySelector('#form__container'),
+      mapElement = document.querySelector("#map");
 
-const storage = localStorage,
-      HEIGHTTRIANGLE = 20,
-      WIDTHTRIANGLE = 20,
-      LEFTSHIFTTRIANGLE = 50,
-      TOPSHIFTBALLON = 95; //возникает из-за разницы координат при открытии из метки или кластера
+const storage = localStorage;
 // storage.clear();
 
 function init() {
-  let address = '',
+  let address = '';
+
     myMap = new ymaps.Map('map', {
       center: [58.01, 56.23],
       zoom: 15,
@@ -41,7 +40,7 @@ function init() {
   const clusterer = initClusterer();
 
   if (storage.length > 0) {
-    renderPlacemarks(myMap, clusterer);
+    renderPlacemarks(clusterer);
   };
     
   myMap.events.add('click', e => {
@@ -50,7 +49,7 @@ function init() {
     reviewForm.dataset.coords = JSON.stringify(coords);
 
     isNewPlacemark = true;
-    console.log(e);
+    
     openBalloon(coords);
     getAddress(coords);
   });
@@ -58,7 +57,9 @@ function init() {
   document.body.addEventListener('click', e => {
     if (e.target.dataset.role === 'header') {
       e.preventDefault();
-      const shiftX = e.clientX - e.target.getBoundingClientRect().x;
+
+      const WIDTHOFARROW = 15; // половина длины стрелки
+      const shiftX = e.clientX - e.target.getBoundingClientRect().x - WIDTHOFARROW;
       
       isNewPlacemark = false;
       const coords = getCoordsByAddress(e.target.textContent);
@@ -216,7 +217,7 @@ function init() {
     
   }
   
-  function renderPlacemarks(map, clusterer) {
+  function renderPlacemarks(clusterer) {
     const placemarks = loadReviewsFromStorage();
     const titleElement = document.querySelector('[data-role=review-address]');
     titleElement.textContent = placemarks[0].address;
@@ -228,7 +229,7 @@ function init() {
     }
     
     clusterer.add(geoObjects);
-    map.geoObjects.add(clusterer);
+    myMap.geoObjects.add(clusterer);
   }
 
   const openBalloon = (coords, shiftX = 0) => {
@@ -248,13 +249,18 @@ function init() {
 
       showAllReviews(coords);
     }
-    console.log(containerElement.offsetHeight);
 
+    const HEIGHTTRIANGLE = 20,
+          WIDTHTRIANGLE = 20,
+          TOPSHIFTHEADER = 15,
+          LEFTSHIFTTRIANGLE = 50,
+          TOPSHIFTBALLON = 85; //возникает из-за разницы координат при открытии из метки или кластера
     if (isOpenFromPlacemark) {
       balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
                            + containerElement.offsetHeight - TOPSHIFTBALLON) + "px";
     } else {
-      balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2) + containerElement.offsetHeight) + "px";
+      balloon.style.top = (event.clientY - (balloon.offsetHeight / 2) - (HEIGHTTRIANGLE / 2)
+                         + containerElement.offsetHeight - TOPSHIFTHEADER) + "px";
     }
     balloon.style.left = (event.clientX + (balloon.offsetWidth / 2) - LEFTSHIFTTRIANGLE - WIDTHTRIANGLE) -shiftX + "px";
     
@@ -263,20 +269,27 @@ function init() {
     const windowHeight = document.documentElement.clientHeight;
     const isBalloonIsBehindMap = ((position.x < 0) || (position.y < 0)) || (position.right > windowWidth);
 
-    // if (isBalloonIsBehindMap) {
-    //   addScroll(position.x, position.y, windowWidth, windowHeight);
-    //   balloon.style.top += -position.x;
-    // };
+    if (isBalloonIsBehindMap) {
+      if (position.x < 0) {
+        shiftCenterOfMap(-position.x, 0);
+        balloon.style.left = `${position.width / 2}px`;
+      } else if (position.right > windowWidth) {
+        shiftCenterOfMap(position.right - windowWidth, 0);
+        balloon.style.left = `${windowWidth - position.width / 2}px`;
+      };
+      if (position.y < 0) {
+        shiftCenterOfMap(0, position.y);
+        balloon.style.top = `${position.height / 2}px`;
+      };
+    };
   };
 
-  // function addScroll(x, y, windowWidth, windowHeight) {
-  //   const mapElement = document.querySelector("#map");
+  function shiftCenterOfMap(shiftX, shiftY) {
+    const [x, y] = myMap.getGlobalPixelCenter();
 
-  //   if ( x < 0 ) {
-  //     mapElement.style.width = `${windowWidth - x}px`;
-  //     mapElement.style.overflowX = "scroll";
-  //   }
-  // }
+    centerOfMap = [x, y];
+    myMap.setGlobalPixelCenter([ x + shiftX, y + shiftY ]);
+  }
 
   const closeBalloon = () => {
     balloon.classList.add('form--hidden');
@@ -284,9 +297,12 @@ function init() {
     isNewPlacemark = false;
     isOpenFromPlacemark = false;
     address = '';
+    mapElement.style.overflow = "hidden";
   
     const reviewForm = document.querySelector('[data-role=review-form]');
     reviewForm.dataset.coords = JSON.stringify([]);
+
+    myMap.setGlobalPixelCenter(centerOfMap);
   }
 }
 
