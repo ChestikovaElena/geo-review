@@ -220,9 +220,7 @@ function init() {
   
   function renderPlacemarks(clusterer) {
     const placemarks = loadReviewsFromStorage();
-    const titleElement = document.querySelector('[data-role=review-address]');
-    titleElement.textContent = placemarks[0].address;
-
+    
     for (let mark of placemarks) {
       
       const geoObject = createGeoObject(mark);
@@ -309,6 +307,8 @@ function init() {
 
 function showAllReviews(coords) {
   const placemarksList = getAllReview(coords);
+  const titleElement = document.querySelector('[data-role=review-address]');
+  titleElement.textContent = placemarksList[0].address;
   const fragment = document.createDocumentFragment();
 
   placemarksList.forEach(elem => fragment.appendChild(renderReview(elem)));
