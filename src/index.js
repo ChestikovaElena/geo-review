@@ -58,7 +58,7 @@ function init() {
         
       address = firstGeoObject.properties.get('text');
       })
-      .then(openBalloon.(coords, 0));
+      .then(openBalloon(coords, 0));
 
   });
 
