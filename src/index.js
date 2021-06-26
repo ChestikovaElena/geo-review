@@ -22,7 +22,6 @@ const balloon = document.querySelector('#form'),
       mapElement = document.querySelector("#map");
 
 const storage = localStorage;
-// storage.clear();
 
 function init() {
   let address = '';
@@ -81,14 +80,6 @@ function init() {
       addPlacemark();
     }
   })
-
-  // function getAddress(coords) {
-  //   ymaps.geocode(coords).then(function (res) {
-  //   let firstGeoObject = res.geoObjects.get(0);
-
-  //   address = firstGeoObject.properties.get('text');
-  //   });
-  // }
 
   function getCoordsByAddress(address) {
     const placemarks = loadReviewsFromStorage();
